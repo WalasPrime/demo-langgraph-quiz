@@ -5,18 +5,18 @@ import { z } from 'zod';
 import { AppConfig } from '../config/configuration';
 import { QuizQuestionGenerator } from './quiz.orchestration';
 import { QuizQuestion as DomainQuestion } from './quiz.types';
+import { quizQuestionsSchema } from './quiz.schemas';
 import { QuizGraphCheckpointer } from './langgraph-checkpointer';
 import { createHash } from 'node:crypto';
 
 export const QUIZ_MODEL = Symbol('QUIZ_MODEL');
-export interface StructuredQuizModel { invoke(input: string): Promise<unknown>; }
+export interface QuizModel {
+  withStructuredOutput(schema: z.ZodTypeAny, config: { method: 'jsonSchema' }): {
+    invoke(input: string): Promise<unknown>;
+  };
+}
 
-const optionSchema = z.object({ id: z.string().min(1), label: z.string().min(1) });
-const questionSchema = z.discriminatedUnion('type', [
-  z.object({ id: z.string().min(1), prompt: z.string().min(1), type: z.literal('single-choice'), options: z.array(optionSchema).length(4), correctOptionId: z.string().min(1) }),
-  z.object({ id: z.string().min(1), prompt: z.string().min(1), type: z.literal('multi-choice'), options: z.array(optionSchema).length(4), requiredOptionIds: z.array(z.string().min(1)).min(1) }),
-]);
-export const quizSchema = z.object({ questions: z.array(questionSchema).min(5).max(8) });
+export const quizSchema = z.object({ questions: quizQuestionsSchema });
 const graphState = Annotation.Root({ markdown: Annotation<string>(), topic: Annotation<string>(), repair: Annotation<string>(), output: Annotation<unknown>() });
 
 @Injectable()
@@ -26,7 +26,7 @@ export class LangGraphQuizQuestionGenerator implements QuizQuestionGenerator {
   constructor(
     private readonly config: ConfigService<AppConfig, true>,
     private readonly checkpointer: QuizGraphCheckpointer,
-    @Inject(QUIZ_MODEL) private readonly model: StructuredQuizModel,
+    @Inject(QUIZ_MODEL) private readonly model: QuizModel,
   ) {}
 
   async generate(markdown: string, topic: string, threadId?: string): Promise<readonly DomainQuestion[]> {
@@ -60,8 +60,9 @@ export class LangGraphQuizQuestionGenerator implements QuizQuestionGenerator {
 
   private async createGraph(): Promise<any> {
     const saver = await this.checkpointer.get();
+    const structuredModel = this.model.withStructuredOutput(quizSchema, { method: 'jsonSchema' });
     return new StateGraph(graphState)
-      .addNode('generate', async (state) => ({ output: await this.model.invoke(this.prompt(state.markdown, state.topic, state.repair)) }))
+      .addNode('generate', async (state) => ({ output: await structuredModel.invoke(this.prompt(state.markdown, state.topic, state.repair)) }))
       .addEdge(START, 'generate')
       .addEdge('generate', END)
       .compile({ checkpointer: saver });

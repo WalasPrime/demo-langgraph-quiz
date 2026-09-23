@@ -32,5 +32,14 @@ export const api: ApiClient = {
 		body: JSON.stringify({ ...answer, version }),
 	}),
 	getResult: (sessionId) => request(`/api/quizzes/sessions/${encodeURIComponent(sessionId)}/result`),
+	startGraph: (sourceUrl, topic) => request('/api/quizzes/graph', {
+		method: 'POST',
+		body: JSON.stringify({ sourceUrl, topic }),
+	}),
+	getGraphState: (sessionId) => request(`/api/quizzes/sessions/${encodeURIComponent(sessionId)}/graph`),
+	resumeGraph: (sessionId, answer) => request(`/api/quizzes/sessions/${encodeURIComponent(sessionId)}/graph/resume`, {
+		method: 'POST',
+		body: JSON.stringify(answer),
+	}),
 };
 export type { ApiClient } from './types';

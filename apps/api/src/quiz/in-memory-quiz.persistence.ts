@@ -1,14 +1,14 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { QuizAnswer, QuizQuestion, QuizSession } from './quiz.types';
+import { QuizAnswer, QuizQuestion, QuizScore, QuizSession } from './quiz.types';
 import { QuizSessionStore } from './quiz.persistence';
 
 @Injectable()
 export class InMemoryQuizSessionStore implements QuizSessionStore {
   private readonly sessions = new Map<string, QuizSession>();
 
-  async create(sourceUrl: string, topic: string, questions: readonly QuizQuestion[]): Promise<QuizSession> {
-    const session: QuizSession = { id: randomUUID(), sourceUrl, topic, questions, answers: [], status: 'active', version: 0 };
+  async create(sourceUrl: string, topic: string, questions: readonly QuizQuestion[], sessionId = randomUUID()): Promise<QuizSession> {
+    const session: QuizSession = { id: sessionId, sourceUrl, topic, questions: [...questions], answers: [], status: 'active', version: 0 };
     this.sessions.set(session.id, session);
     return session;
   }
@@ -29,10 +29,10 @@ export class InMemoryQuizSessionStore implements QuizSessionStore {
     return updated;
   }
 
-  async saveScore(sessionId: string, score: QuizSession['score']): Promise<QuizSession> {
+  async saveScore(sessionId: string, score: QuizScore): Promise<QuizSession> {
     const session = this.sessions.get(sessionId);
     if (!session) throw new NotFoundException('Quiz session not found');
-    const updated = { ...session, score, status: 'completed' as const };
+    const updated = { ...session, score: { ...score, questionScores: [...score.questionScores] }, status: 'completed' as const };
     this.sessions.set(sessionId, updated);
     return updated;
   }

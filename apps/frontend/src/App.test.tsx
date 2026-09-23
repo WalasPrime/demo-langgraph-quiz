@@ -9,9 +9,10 @@ const question = {
   options: [{ id: 'a', label: 'Correct choice' }, { id: 'b', label: 'Other choice' }],
 };
 
-const session = (overrides: Record<string, unknown> = {}) => ({
-  id: 'session-1', sourceUrl: 'https://example.com/readme.md', topic: 'TypeScript',
-  questions: [question], answers: [], status: 'active' as const, version: 0, ...overrides,
+const graphState = (overrides: Record<string, unknown> = {}) => ({
+  id: '00000000-0000-4000-8000-000000000001', sourceUrl: 'https://example.com/readme.md', topic: 'TypeScript',
+  questions: [question], answers: [], status: 'awaiting_answer' as const, currentQuestionIndex: 0,
+  updatedAt: '2026-09-23T00:00:00.000Z', ...overrides,
 });
 
 function response(body: unknown, ok = true, status = 200): Response {
@@ -19,6 +20,7 @@ function response(body: unknown, ok = true, status = 200): Response {
 }
 
 afterEach(() => {
+  window.history.pushState({}, '', '/');
   localStorage.clear();
   vi.restoreAllMocks();
 });
@@ -42,9 +44,9 @@ describe('quiz flow', () => {
 
   it('selects and submits one question with the session version', async () => {
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce(response(session()))
-      .mockResolvedValueOnce(response(session({ status: 'completed', version: 1, answers: [{ questionId: 'q1', selectedOptionIds: ['a'] }] })))
-      .mockResolvedValueOnce(response({ weightedAverage: 4, questionScores: [{ questionId: 'q1', score: 4, weight: 1 }] }));
+      .mockResolvedValueOnce(response(graphState({ status: 'pending', currentQuestionIndex: undefined })))
+      .mockResolvedValueOnce(response(graphState()))
+      .mockResolvedValueOnce(response(graphState({ status: 'completed', currentQuestionIndex: undefined, answers: [{ questionId: 'q1', selectedOptionIds: ['a'] }], score: { weightedAverage: 4, questionScores: [{ questionId: 'q1', score: 4, weight: 1 }] } })));
     vi.stubGlobal('fetch', fetchMock);
     render(<App />);
     fireEvent.change(screen.getAllByRole('textbox')[1], { target: { value: 'TypeScript' } });
@@ -53,23 +55,23 @@ describe('quiz flow', () => {
     fireEvent.click(screen.getByLabelText('Correct choice'));
     fireEvent.click(screen.getByRole('button', { name: 'Finish quiz' }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
-    expect(JSON.parse(fetchMock.mock.calls[1][1].body as string)).toEqual({ questionId: 'q1', selectedOptionIds: ['a'], version: 0 });
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body as string)).toEqual({ questionId: 'q1', selectedOptionIds: ['a'] });
   });
 
   it('resumes the stored session on load', async () => {
-    localStorage.setItem('toploox.quiz.sessionId', 'session-1');
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(session())));
+    window.history.pushState({}, '', '/quiz/00000000-0000-4000-8000-000000000001');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(graphState())));
     render(<App />);
     expect(await screen.findByText('Which answer is correct?')).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/quizzes/sessions/session-1', expect.anything());
+    expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/quizzes/sessions/00000000-0000-4000-8000-000000000001/graph', expect.anything());
   });
 
   it('renders the completed score and breakdown', async () => {
-    const completed = session({ status: 'completed' });
+    const completed = graphState({ status: 'completed', currentQuestionIndex: undefined, score: { weightedAverage: 3.5, questionScores: [{ questionId: 'q1', score: 3.5, weight: 1 }] } });
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce(response(completed))
-      .mockResolvedValueOnce(response({ weightedAverage: 3.5, questionScores: [{ questionId: 'q1', score: 3.5, weight: 1 }] })));
-    localStorage.setItem('toploox.quiz.sessionId', 'session-1');
+    );
+    window.history.pushState({}, '', '/quiz/00000000-0000-4000-8000-000000000001');
     render(<App />);
     expect(await screen.findByText('Quiz complete')).toBeInTheDocument();
     expect(screen.getByText('3.50')).toBeInTheDocument();

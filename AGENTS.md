@@ -2,7 +2,7 @@
 
 ## Current Status
 
-The Docker Compose scaffold is implemented and smoke-tested. The NestJS API responds on `http://localhost:3000/api/health`, and the Vite frontend serves on `http://localhost:5173`. The frontend still uses its mock API client; live API wiring is the next integration step.
+The Docker Compose scaffold is implemented and smoke-tested. The NestJS API responds on `http://localhost:3000/api/health` and the Vite frontend serves on `http://localhost:5173`. LangSmith Cloud tracing is optional and is enabled through environment variables. The frontend still uses its mock API client; live API wiring is the next integration step.
 
 See [the approved project plan](.azure/project-plan.md) and [the integration hand-off](.azure/integration-plan.md) for the current scope and remaining work.
 
@@ -11,7 +11,8 @@ See [the approved project plan](.azure/project-plan.md) and [the integration han
 - `apps/api`: stateless NestJS TypeScript API.
 - `apps/frontend`: React + Vite TypeScript SPA using Fluent UI v9.
 - `docker-compose.yml`: local orchestration with direct ports `3000` and `5173`.
-- No database, authentication, broker, cache, or Azure-managed service is currently required.
+- MongoDB stores quiz state and LangGraph checkpoints.
+- LangSmith Cloud is optional external observability and is not part of the quiz domain API.
 
 Dependencies must stay off the network-mounted checkout. `workspace` is the Node/npm command container, and the named `api_node_modules` and `frontend_node_modules` volumes are shared with the runtime containers.
 
@@ -30,7 +31,7 @@ docker compose exec workspace npm --prefix apps/frontend run build
 docker compose exec workspace npm --prefix apps/frontend test
 ```
 
-Run the application with `docker compose up api frontend` and verify `GET /api/health` with `curl`.
+Run the application with `docker compose up -d` and verify `GET /api/health` with `curl`.
 
 ## Conventions
 

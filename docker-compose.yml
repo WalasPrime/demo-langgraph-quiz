@@ -29,6 +29,11 @@ services:
       MARKDOWN_MAX_BYTES: ${MARKDOWN_MAX_BYTES:-1048576}
       MARKDOWN_TIMEOUT_MS: ${MARKDOWN_TIMEOUT_MS:-5000}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-toploox-quiz}
+      LANGSMITH_WORKSPACE_ID: ${LANGSMITH_WORKSPACE_ID:-toploox-quiz}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -51,6 +56,18 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: ${MONGO_EXPRESS_MONGODB_URL:-mongodb://mongodb:27017/}
+      ME_CONFIG_BASICAUTH_ENABLED: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin}
+    depends_on:
+      mongodb:
+        condition: service_healthy
 volumes:
   api_node_modules:
   frontend_node_modules:

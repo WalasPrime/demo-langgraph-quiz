@@ -3,8 +3,8 @@ import { MongoQuizSessionStore } from './mongodb-quiz.persistence';
 import { QuizQuestion } from './quiz.types';
 
 describe('MongoQuizSessionStore', () => {
-  const questions: QuizQuestion[] = [{ id: 'q1', prompt: 'Question', type: 'single-choice', correctOptionId: 'a', options: ['a', 'b', 'c', 'd'].map((id) => ({ id, label: id })) }];
-  const document = { _id: 'session', sourceUrl: 'https://example.com/readme.md', topic: 'TypeScript', questions, answers: [], status: 'active' as const, version: 0 };
+  const questions: QuizQuestion[] = Array.from({ length: 5 }, (_, index) => ({ id: `q${index + 1}`, prompt: 'Question', type: 'single-choice' as const, correctOptionId: 'a', options: ['a', 'b', 'c', 'd'].map((id) => ({ id, label: id })) }));
+  const document = { _id: '00000000-0000-4000-8000-000000000001', sourceUrl: 'https://example.com/readme.md', topic: 'TypeScript', questions, answers: [], status: 'active' as const, version: 0 };
 
   it('persists and idempotently replays an answer across store instances', async () => {
     const collection = {

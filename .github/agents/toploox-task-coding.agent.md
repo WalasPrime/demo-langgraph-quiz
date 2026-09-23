@@ -24,6 +24,7 @@ If an expected guidance file or documentation directory is missing, say so expli
 - Before editing, state the local behavior you believe controls the task and the focused check that could disconfirm it.
 - Keep changes scoped to the user's request and follow the repository's documented commands and conventions.
 - When development-environment guidance affects a command or file location, follow the ADR even if a host-side shortcut appears available.
+- When changing user-visible quiz logic, labels, routes, persistence, loading/error states, or completion behavior, read and update the affected browser flows under `docs/qa/` in the same change. Preserve stable flow IDs and add a flow for any new user journey.
 - After editing, run the narrowest useful validation, then report what was checked and any remaining limitations.
 
 ## Response Expectations

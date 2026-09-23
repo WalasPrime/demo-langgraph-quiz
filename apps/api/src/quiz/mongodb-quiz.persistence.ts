@@ -5,6 +5,7 @@ import { AppConfig } from '../config/configuration';
 import { QuizAnswer, QuizQuestion, QuizScore, QuizSession } from './quiz.types';
 import { QuizSessionStore } from './quiz.persistence';
 import { randomUUID } from 'node:crypto';
+import { quizSessionSchema } from './quiz.schemas';
 
 interface QuizDocument {
   _id: string;
@@ -26,8 +27,8 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
     this.client = new MongoClient(this.config.getOrThrow('MONGODB_URI'));
   }
 
-  async create(sourceUrl: string, topic: string, questions: readonly QuizQuestion[]): Promise<QuizSession> {
-    const session: QuizSession = { id: randomUUID(), sourceUrl, topic, questions, answers: [], status: 'active', version: 0 };
+  async create(sourceUrl: string, topic: string, questions: readonly QuizQuestion[], sessionId = randomUUID()): Promise<QuizSession> {
+    const session: QuizSession = { id: sessionId, sourceUrl, topic, questions: [...questions], answers: [], status: 'active', version: 0 };
     await (await this.collection()).insertOne(this.toDocument(session));
     return session;
   }
@@ -55,9 +56,9 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
     return this.fromDocument((await collection.findOne({ _id: sessionId }))!);
   }
 
-  async saveScore(sessionId: string, score: QuizSession['score']): Promise<QuizSession> {
+  async saveScore(sessionId: string, score: QuizScore): Promise<QuizSession> {
     const collection = await this.collection();
-    const result = await collection.findOneAndUpdate({ _id: sessionId }, { $set: { score, status: 'completed' } }, { returnDocument: 'after' });
+    const result = await collection.findOneAndUpdate({ _id: sessionId }, { $set: { score: { ...score, questionScores: [...score.questionScores] }, status: 'completed' } }, { returnDocument: 'after' });
     if (!result) throw new NotFoundException('Quiz session not found');
     return this.fromDocument(result);
   }
@@ -77,10 +78,11 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
   }
 
   private toDocument(session: QuizSession): QuizDocument {
-    return { _id: session.id, sourceUrl: session.sourceUrl, topic: session.topic, questions: [...session.questions], answers: [...session.answers], status: session.status, version: session.version, score: session.score };
+    const parsed = quizSessionSchema.parse(session);
+    return { _id: parsed.id, sourceUrl: parsed.sourceUrl, topic: parsed.topic, questions: [...parsed.questions], answers: [...parsed.answers], status: parsed.status, version: parsed.version, score: parsed.score };
   }
 
   private fromDocument(document: QuizDocument): QuizSession {
-    return { id: document._id, sourceUrl: document.sourceUrl, topic: document.topic, questions: document.questions, answers: document.answers, status: document.status, version: document.version, score: document.score };
+    return quizSessionSchema.parse({ id: document._id, sourceUrl: document.sourceUrl, topic: document.topic, questions: document.questions, answers: document.answers, status: document.status, version: document.version, score: document.score ?? undefined });
   }
 }

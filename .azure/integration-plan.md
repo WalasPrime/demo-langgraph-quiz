@@ -43,6 +43,11 @@
 - Enhancement: the REST start contract accepts `sourceUrl` and `topic`; the API
 	fetches Markdown, generates a structured quiz through LangGraph/LangChain, and
 	projects it to Mongo without returning answer keys.
+- The browser workflow uses `POST /api/quizzes/graph` to create a backend-generated
+	session checkpoint, then polls `GET /api/quizzes/sessions/:sessionId/graph` while
+	LangGraph is `pending` or `running`. Answers resume the graph through
+	`POST /api/quizzes/sessions/:sessionId/graph/resume`; the frontend URL is
+	`/quiz/:sessionId` and refreshes perform reads only.
 
 ## Dependency Storage
 - `api_node_modules` and `frontend_node_modules` are named Docker volumes shared by `workspace` and runtime services; do not install dependencies on the host.
