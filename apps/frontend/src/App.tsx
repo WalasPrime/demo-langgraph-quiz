@@ -27,7 +27,6 @@ export function App(): JSX.Element {
   const [view, setView] = useState<View>('setup');
   const [graphState, setGraphState] = useState<PublicGraphState | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(() => sessionIdFromLocation());
-  const [pollNonce, setPollNonce] = useState(0);
   const [sourceUrl, setSourceUrl] = useState('https://raw.githubusercontent.com/pipecat-ai/pipecat/refs/heads/main/README.md');
   const [topic, setTopic] = useState('');
   const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
@@ -95,7 +94,7 @@ export function App(): JSX.Element {
       cancelled = true;
       if (pollTimer.current !== undefined) window.clearTimeout(pollTimer.current);
     };
-  }, [sessionId, pollNonce]);
+  }, [sessionId]);
 
   const restart = (): void => {
     if (pollTimer.current !== undefined) window.clearTimeout(pollTimer.current);
@@ -117,7 +116,7 @@ export function App(): JSX.Element {
       <main>
         {view === 'setup' && <SetupForm sourceUrl={sourceUrl} topic={topic} onSourceUrlChange={setSourceUrl} onTopicChange={setTopic} onSubmit={startQuiz} />}
         {view === 'loading' && <LoadingState />}
-        {view === 'error' && <ErrorState code={errorCode} message={errorMessage ?? 'Unable to reach the quiz service.'} onRetry={() => sessionId ? setPollNonce((value) => value + 1) : setView('setup')} />}
+        {view === 'error' && <ErrorState code={errorCode} message={errorMessage ?? 'Unable to reach the quiz service.'} onRestart={restart} />}
         {view === 'active' && graphState && <QuizView state={graphState} selectedOptionIds={selectedOptionIds} onSelectionChange={setSelectedOptionIds} onSubmit={(answer) => {
           setView('loading');
           if (pollTimer.current !== undefined) window.clearTimeout(pollTimer.current);
@@ -151,9 +150,9 @@ function LoadingState(): JSX.Element {
   return <Card className="state-card"><Spinner label="Loading quiz..." /></Card>;
 }
 
-function ErrorState({ code, message, onRetry }: { code: string | null; message: string; onRetry: () => void }): JSX.Element {
+function ErrorState({ code, message, onRestart }: { code: string | null; message: string; onRestart: () => void }): JSX.Element {
   const title = code === 'SOURCE_NOT_ANSWERABLE' ? 'This source does not match the topic' : code === 'PROMPT_INJECTION_DETECTED' ? 'Quiz request blocked' : 'We couldn&apos;t load the quiz';
-  return <MessageBar intent="error"><DismissCircleRegular /><MessageBarBody><MessageBarTitle>{title}</MessageBarTitle><div>{message}</div><Button appearance="primary" onClick={onRetry}>Try again</Button></MessageBarBody></MessageBar>;
+  return <MessageBar intent="error"><DismissCircleRegular /><MessageBarBody><MessageBarTitle>{title}</MessageBarTitle><div>{message}</div><Button appearance="primary" onClick={onRestart}>Start new quiz</Button></MessageBarBody></MessageBar>;
 }
 
 function ResultView({ state, onRestart }: { state: PublicGraphState; onRestart: () => void }): JSX.Element {

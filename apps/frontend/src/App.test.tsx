@@ -40,6 +40,8 @@ describe('quiz flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Generate quiz' }));
     expect(await screen.findByText('Source could not be fetched')).toBeInTheDocument();
     expect(screen.queryByText('Correct choice')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Start new quiz' }));
+    expect(screen.getByRole('button', { name: 'Generate quiz' })).toBeInTheDocument();
   });
 
   it('selects and submits one question with the session version', async () => {

@@ -13,7 +13,9 @@ describe('QuizApplicationService', () => {
     correctOptionId: 'a',
     options: ['a', 'b', 'c', 'd'].map((id) => ({ id, label: id })),
   }));
-  const sourceService = { fetch: jest.fn().mockResolvedValue({ content: '# source' }) } as unknown as MarkdownSourceService;
+  const sourceService = {
+    fetch: jest.fn().mockResolvedValue({ content: '# source' }),
+  } as unknown as MarkdownSourceService;
   const store = new InMemoryQuizSessionStore();
   const generator = { generate: jest.fn().mockResolvedValue(questions) };
   const service = new QuizApplicationService(sourceService, new QuizScoringService(), store, generator);
@@ -42,14 +44,22 @@ describe('QuizApplicationService', () => {
     const session = await service.start('https://github.com/acme/docs/blob/main/README.md', 'TypeScript');
     await service.submit(session.id, { questionId: 'question-0', selectedOptionIds: ['a'] }, 0);
 
-    await expect(service.submit(session.id, { questionId: 'question-1', selectedOptionIds: ['a'] }, 0)).rejects.toThrow(ConflictException);
-    await expect(service.submit(session.id, { questionId: 'question-0', selectedOptionIds: ['b'] }, 1)).rejects.toThrow(ConflictException);
+    await expect(service.submit(session.id, { questionId: 'question-1', selectedOptionIds: ['a'] }, 0)).rejects.toThrow(
+      ConflictException,
+    );
+    await expect(service.submit(session.id, { questionId: 'question-0', selectedOptionIds: ['b'] }, 1)).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('rejects unknown questions and options', async () => {
     const session = await service.start('https://github.com/acme/docs/blob/main/README.md', 'TypeScript');
-    await expect(service.submit(session.id, { questionId: 'missing', selectedOptionIds: [], }, 0)).rejects.toThrow(BadRequestException);
-    await expect(service.submit(session.id, { questionId: 'question-0', selectedOptionIds: ['missing'], }, 0)).rejects.toThrow(BadRequestException);
+    await expect(service.submit(session.id, { questionId: 'missing', selectedOptionIds: [] }, 0)).rejects.toThrow(
+      BadRequestException,
+    );
+    await expect(
+      service.submit(session.id, { questionId: 'question-0', selectedOptionIds: ['missing'] }, 0),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('rebuilds the domain projection before resuming a graph session', async () => {
@@ -63,16 +73,31 @@ describe('QuizApplicationService', () => {
     };
     const workflow = {
       state: jest.fn().mockResolvedValue(graphState),
-      resume: jest.fn().mockResolvedValue({ ...graphState, answers: [...graphState.answers, { questionId: 'question-1', selectedOptionIds: ['b'] }] }),
+      resume: jest.fn().mockResolvedValue({
+        ...graphState,
+        answers: [...graphState.answers, { questionId: 'question-1', selectedOptionIds: ['b'] }],
+      }),
       toPublic: jest.fn((state) => state),
     };
-    const graphService = new QuizApplicationService(sourceService, new QuizScoringService(), new InMemoryQuizSessionStore(), generator, workflow as any);
+    const graphService = new QuizApplicationService(
+      sourceService,
+      new QuizScoringService(),
+      new InMemoryQuizSessionStore(),
+      generator,
+      workflow as any,
+    );
 
-    await expect(graphService.resumeGraph(graphState.sessionId, { questionId: 'question-1', selectedOptionIds: ['b'] })).resolves.toEqual(expect.objectContaining({ sessionId: graphState.sessionId }));
-    await expect(graphService.get(graphState.sessionId)).resolves.toEqual(expect.objectContaining({ answers: [
-      { questionId: 'question-0', selectedOptionIds: ['a'] },
-      { questionId: 'question-1', selectedOptionIds: ['b'] },
-    ] }));
+    await expect(
+      graphService.resumeGraph(graphState.sessionId, { questionId: 'question-1', selectedOptionIds: ['b'] }),
+    ).resolves.toEqual(expect.objectContaining({ sessionId: graphState.sessionId }));
+    await expect(graphService.get(graphState.sessionId)).resolves.toEqual(
+      expect.objectContaining({
+        answers: [
+          { questionId: 'question-0', selectedOptionIds: ['a'] },
+          { questionId: 'question-1', selectedOptionIds: ['b'] },
+        ],
+      }),
+    );
   });
 
   it('reconciles a partially persisted projection before resuming', async () => {
@@ -89,16 +114,30 @@ describe('QuizApplicationService', () => {
     await graphStore.create(graphState.sourceUrl, graphState.topic, questions, sessionId);
     const workflow = {
       state: jest.fn().mockResolvedValue(graphState),
-      resume: jest.fn().mockResolvedValue({ ...graphState, answers: [...graphState.answers, { questionId: 'question-1', selectedOptionIds: ['b'] }] }),
+      resume: jest.fn().mockResolvedValue({
+        ...graphState,
+        answers: [...graphState.answers, { questionId: 'question-1', selectedOptionIds: ['b'] }],
+      }),
       toPublic: jest.fn((state) => state),
     };
-    const graphService = new QuizApplicationService(sourceService, new QuizScoringService(), graphStore, generator, workflow as any);
+    const graphService = new QuizApplicationService(
+      sourceService,
+      new QuizScoringService(),
+      graphStore,
+      generator,
+      workflow as any,
+    );
 
     await graphService.resumeGraph(sessionId, { questionId: 'question-1', selectedOptionIds: ['b'] });
 
-    await expect(graphService.get(sessionId)).resolves.toEqual(expect.objectContaining({ answers: [
-      { questionId: 'question-0', selectedOptionIds: ['a'] },
-      { questionId: 'question-1', selectedOptionIds: ['b'] },
-    ], version: 2 }));
+    await expect(graphService.get(sessionId)).resolves.toEqual(
+      expect.objectContaining({
+        answers: [
+          { questionId: 'question-0', selectedOptionIds: ['a'] },
+          { questionId: 'question-1', selectedOptionIds: ['b'] },
+        ],
+        version: 2,
+      }),
+    );
   });
 });

@@ -75,14 +75,19 @@ function parseCorsOrigins(value: unknown): string[] {
     .map((origin) => origin.trim().replace(/\/$/, ''))
     .filter(Boolean);
 
-  if (origins.length === 0 || origins.some((origin) => {
-    try {
-      const parsed = new URL(origin);
-      return !['http:', 'https:'].includes(parsed.protocol) || parsed.pathname !== '/' || parsed.search || parsed.hash;
-    } catch {
-      return true;
-    }
-  })) {
+  if (
+    origins.length === 0 ||
+    origins.some((origin) => {
+      try {
+        const parsed = new URL(origin);
+        return (
+          !['http:', 'https:'].includes(parsed.protocol) || parsed.pathname !== '/' || parsed.search || parsed.hash
+        );
+      } catch {
+        return true;
+      }
+    })
+  ) {
     throw new Error('CORS_ORIGINS must contain valid HTTP or HTTPS origins');
   }
 

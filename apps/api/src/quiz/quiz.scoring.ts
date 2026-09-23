@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  QuizAnswer,
-  QuizQuestion,
-  QuizScore,
-  QuestionScore,
-} from './quiz.types';
+import { QuizAnswer, QuizQuestion, QuizScore, QuestionScore } from './quiz.types';
 
 @Injectable()
 export class QuizScoringService {
@@ -12,15 +7,10 @@ export class QuizScoringService {
     const selectedOptionIds = new Set(answer?.selectedOptionIds ?? []);
 
     if (question.type === 'single-choice') {
-      return selectedOptionIds.size === 1 && selectedOptionIds.has(question.correctOptionId)
-        ? 4
-        : 0;
+      return selectedOptionIds.size === 1 && selectedOptionIds.has(question.correctOptionId) ? 4 : 0;
     }
 
-    return question.requiredOptionIds.reduce(
-      (score, optionId) => score + (selectedOptionIds.has(optionId) ? 1 : 0),
-      0,
-    );
+    return question.requiredOptionIds.reduce((score, optionId) => score + (selectedOptionIds.has(optionId) ? 1 : 0), 0);
   }
 
   scoreQuiz(questions: readonly QuizQuestion[], answers: readonly QuizAnswer[]): QuizScore {
@@ -31,8 +21,7 @@ export class QuizScoringService {
       weight: 1.0 * 1.1 ** index,
     }));
     const totalWeight = questionScores.reduce((sum, item) => sum + item.weight, 0);
-    const weightedAverage =
-      questionScores.reduce((sum, item) => sum + item.score * item.weight, 0) / totalWeight;
+    const weightedAverage = questionScores.reduce((sum, item) => sum + item.score * item.weight, 0) / totalWeight;
 
     return { questionScores, weightedAverage };
   }

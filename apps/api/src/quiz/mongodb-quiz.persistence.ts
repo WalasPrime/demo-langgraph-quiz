@@ -27,8 +27,21 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
     this.client = new MongoClient(this.config.getOrThrow('MONGODB_URI'));
   }
 
-  async create(sourceUrl: string, topic: string, questions: readonly QuizQuestion[], sessionId = randomUUID()): Promise<QuizSession> {
-    const session: QuizSession = { id: sessionId, sourceUrl, topic, questions: [...questions], answers: [], status: 'active', version: 0 };
+  async create(
+    sourceUrl: string,
+    topic: string,
+    questions: readonly QuizQuestion[],
+    sessionId = randomUUID(),
+  ): Promise<QuizSession> {
+    const session: QuizSession = {
+      id: sessionId,
+      sourceUrl,
+      topic,
+      questions: [...questions],
+      answers: [],
+      status: 'active',
+      version: 0,
+    };
     await (await this.collection()).insertOne(this.toDocument(session));
     return session;
   }
@@ -44,7 +57,8 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
     if (!current) throw new NotFoundException('Quiz session not found');
     const previous = current.answers.find((item) => item.questionId === answer.questionId);
     const selectedOptionIds = [...answer.selectedOptionIds].sort();
-    if (previous && JSON.stringify([...previous.selectedOptionIds].sort()) === JSON.stringify(selectedOptionIds)) return this.fromDocument(current);
+    if (previous && JSON.stringify([...previous.selectedOptionIds].sort()) === JSON.stringify(selectedOptionIds))
+      return this.fromDocument(current);
     if (current.version !== version) throw new ConflictException('Quiz session version is stale');
     if (previous) throw new ConflictException('Question has already been answered');
 
@@ -58,7 +72,11 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
 
   async saveScore(sessionId: string, score: QuizScore): Promise<QuizSession> {
     const collection = await this.collection();
-    const result = await collection.findOneAndUpdate({ _id: sessionId }, { $set: { score: { ...score, questionScores: [...score.questionScores] }, status: 'completed' } }, { returnDocument: 'after' });
+    const result = await collection.findOneAndUpdate(
+      { _id: sessionId },
+      { $set: { score: { ...score, questionScores: [...score.questionScores] }, status: 'completed' } },
+      { returnDocument: 'after' },
+    );
     if (!result) throw new NotFoundException('Quiz session not found');
     return this.fromDocument(result);
   }
@@ -79,10 +97,28 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
 
   private toDocument(session: QuizSession): QuizDocument {
     const parsed = quizSessionSchema.parse(session);
-    return { _id: parsed.id, sourceUrl: parsed.sourceUrl, topic: parsed.topic, questions: [...parsed.questions], answers: [...parsed.answers], status: parsed.status, version: parsed.version, score: parsed.score };
+    return {
+      _id: parsed.id,
+      sourceUrl: parsed.sourceUrl,
+      topic: parsed.topic,
+      questions: [...parsed.questions],
+      answers: [...parsed.answers],
+      status: parsed.status,
+      version: parsed.version,
+      score: parsed.score,
+    };
   }
 
   private fromDocument(document: QuizDocument): QuizSession {
-    return quizSessionSchema.parse({ id: document._id, sourceUrl: document.sourceUrl, topic: document.topic, questions: document.questions, answers: document.answers, status: document.status, version: document.version, score: document.score ?? undefined });
+    return quizSessionSchema.parse({
+      id: document._id,
+      sourceUrl: document.sourceUrl,
+      topic: document.topic,
+      questions: document.questions,
+      answers: document.answers,
+      status: document.status,
+      version: document.version,
+      score: document.score ?? undefined,
+    });
   }
 }

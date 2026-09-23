@@ -38,10 +38,18 @@ describe('quiz request contracts', () => {
     };
     const controller = new QuizController(service as never);
 
-    await expect(controller.start({ sourceUrl: 'https://example.com/readme.md', topic: 'TypeScript' })).resolves.toEqual(expect.objectContaining({ id: session.id }));
+    await expect(
+      controller.start({ sourceUrl: 'https://example.com/readme.md', topic: 'TypeScript' }),
+    ).resolves.toEqual(expect.objectContaining({ id: session.id }));
     await expect(controller.get(session.id)).resolves.toEqual(expect.objectContaining({ id: session.id }));
-    await expect(controller.submit(session.id, { questionId: 'q', selectedOptionIds: ['a'], version: 0 })).resolves.toEqual(expect.objectContaining({ version: 1 }));
+    await expect(
+      controller.submit(session.id, { questionId: 'q', selectedOptionIds: ['a'], version: 0 }),
+    ).resolves.toEqual(expect.objectContaining({ version: 1 }));
     await expect(controller.result(session.id)).resolves.toEqual({ weightedAverage: 4, questionScores: [] });
-    expect(service.submit).toHaveBeenCalledWith(session.id, { questionId: 'q', selectedOptionIds: ['a'], version: 0 }, 0);
+    expect(service.submit).toHaveBeenCalledWith(
+      session.id,
+      { questionId: 'q', selectedOptionIds: ['a'], version: 0 },
+      0,
+    );
   });
 });

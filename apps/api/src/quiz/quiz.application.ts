@@ -39,7 +39,11 @@ export class QuizApplicationService {
     if (!this.workflow) throw new BadRequestException('Graph workflow is not configured');
     const state = await this.workflow.state(sessionId);
     const previous = state.answers.find((item) => item.questionId === answer.questionId);
-    if (previous && JSON.stringify([...previous.selectedOptionIds].sort()) === JSON.stringify([...answer.selectedOptionIds].sort())) return this.workflow.toPublic(state);
+    if (
+      previous &&
+      JSON.stringify([...previous.selectedOptionIds].sort()) === JSON.stringify([...answer.selectedOptionIds].sort())
+    )
+      return this.workflow.toPublic(state);
     let projection = await this.store.get(sessionId);
     if (!projection) {
       projection = await this.store.create(state.finalUrl ?? state.sourceUrl, state.topic, state.questions, sessionId);
@@ -63,9 +67,11 @@ export class QuizApplicationService {
 
   async submit(sessionId: string, answer: QuizAnswer, version: number): Promise<QuizSession> {
     const session = await this.get(sessionId);
-    if (!session.questions.some((question) => question.id === answer.questionId)) throw new BadRequestException('Question does not belong to this quiz');
+    if (!session.questions.some((question) => question.id === answer.questionId))
+      throw new BadRequestException('Question does not belong to this quiz');
     const question = session.questions.find((item) => item.id === answer.questionId)!;
-    if (answer.selectedOptionIds.some((id) => !question.options.some((option) => option.id === id))) throw new BadRequestException('Answer contains an unknown option');
+    if (answer.selectedOptionIds.some((id) => !question.options.some((option) => option.id === id)))
+      throw new BadRequestException('Answer contains an unknown option');
     return this.store.submitAnswer(sessionId, answer, version);
   }
 
@@ -77,13 +83,29 @@ export class QuizApplicationService {
   }
 
   private validateQuestions(questions: readonly QuizQuestion[]): void {
-    if (questions.length < 5 || questions.length > 8) throw new BadRequestException('Quiz must contain between five and eight questions');
+    if (questions.length < 5 || questions.length > 8)
+      throw new BadRequestException('Quiz must contain between five and eight questions');
     const ids = new Set<string>();
     for (const question of questions) {
-      if (ids.has(question.id) || question.options.length !== 4 || new Set(question.options.map((option) => option.id)).size !== 4) throw new BadRequestException('Quiz questions must have unique IDs and four unique options');
+      if (
+        ids.has(question.id) ||
+        question.options.length !== 4 ||
+        new Set(question.options.map((option) => option.id)).size !== 4
+      )
+        throw new BadRequestException('Quiz questions must have unique IDs and four unique options');
       ids.add(question.id);
-      if (question.type === 'single-choice' && !question.options.some((option) => option.id === question.correctOptionId)) throw new BadRequestException('Single-choice questions need a valid correct option');
-      if (question.type === 'multi-choice' && (!question.requiredOptionIds?.length || new Set(question.requiredOptionIds).size !== question.requiredOptionIds.length || question.requiredOptionIds.some((id) => !question.options.some((option) => option.id === id)))) throw new BadRequestException('Multi-choice questions need valid required options');
+      if (
+        question.type === 'single-choice' &&
+        !question.options.some((option) => option.id === question.correctOptionId)
+      )
+        throw new BadRequestException('Single-choice questions need a valid correct option');
+      if (
+        question.type === 'multi-choice' &&
+        (!question.requiredOptionIds?.length ||
+          new Set(question.requiredOptionIds).size !== question.requiredOptionIds.length ||
+          question.requiredOptionIds.some((id) => !question.options.some((option) => option.id === id)))
+      )
+        throw new BadRequestException('Multi-choice questions need valid required options');
     }
   }
 }

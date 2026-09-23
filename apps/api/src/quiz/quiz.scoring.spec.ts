@@ -27,12 +27,8 @@ describe('QuizScoringService', () => {
       requiredOptionIds: ['a', 'c', 'd'],
     };
 
-    expect(
-      service.scoreAnswer(question, { questionId: 'multi', selectedOptionIds: ['a', 'x', 'a'] }),
-    ).toBe(1);
-    expect(
-      service.scoreAnswer(question, { questionId: 'multi', selectedOptionIds: ['a', 'c', 'd', 'x'] }),
-    ).toBe(3);
+    expect(service.scoreAnswer(question, { questionId: 'multi', selectedOptionIds: ['a', 'x', 'a'] })).toBe(1);
+    expect(service.scoreAnswer(question, { questionId: 'multi', selectedOptionIds: ['a', 'c', 'd', 'x'] })).toBe(3);
   });
 
   it('uses geometric weights for the weighted average', () => {

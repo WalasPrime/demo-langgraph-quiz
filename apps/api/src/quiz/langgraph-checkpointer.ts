@@ -24,9 +24,16 @@ export class QuizGraphCheckpointer implements OnModuleDestroy {
 
   private async connect(): Promise<MongoDBSaver> {
     await this.client.connect();
-    const saver = new MongoDBSaver({ client: this.client, dbName: this.config.getOrThrow('MONGODB_DB'), enableTimestamps: true });
+    const saver = new MongoDBSaver({
+      client: this.client,
+      dbName: this.config.getOrThrow('MONGODB_DB'),
+      enableTimestamps: true,
+    });
     const errors = await saver.setup();
-    if (errors.length > 0) throw new Error(`LangGraph MongoDB checkpointer setup failed: ${errors.map((error) => error.message).join('; ')}`);
+    if (errors.length > 0)
+      throw new Error(
+        `LangGraph MongoDB checkpointer setup failed: ${errors.map((error) => error.message).join('; ')}`,
+      );
     return saver;
   }
 }

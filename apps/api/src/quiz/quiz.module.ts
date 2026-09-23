@@ -27,13 +27,14 @@ import { LangGraphQuizWorkflow } from './langgraph-quiz.workflow';
     {
       provide: QUIZ_MODEL,
       inject: [ConfigService],
-      useFactory: (config: ConfigService<AppConfig, true>) => new ChatOpenAI({
-        apiKey: config.getOrThrow('OPENAI_API_KEY'),
-        model: config.getOrThrow('OPENAI_MODEL'),
-        timeout: config.getOrThrow('OPENAI_TIMEOUT_MS'),
-        maxTokens: config.getOrThrow('OPENAI_MAX_TOKENS'),
-        configuration: { baseURL: config.getOrThrow('OPENAI_BASE_URL') },
-      }),
+      useFactory: (config: ConfigService<AppConfig, true>) =>
+        new ChatOpenAI({
+          apiKey: config.getOrThrow('OPENAI_API_KEY'),
+          model: config.getOrThrow('OPENAI_MODEL'),
+          timeout: config.getOrThrow('OPENAI_TIMEOUT_MS'),
+          maxTokens: config.getOrThrow('OPENAI_MAX_TOKENS'),
+          configuration: { baseURL: config.getOrThrow('OPENAI_BASE_URL') },
+        }),
     },
     { provide: QUIZ_SESSION_STORE, useExisting: MongoQuizSessionStore },
   ],

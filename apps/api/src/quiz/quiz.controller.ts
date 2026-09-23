@@ -30,12 +30,18 @@ export class QuizController {
   }
 
   @Post('sessions/:sessionId/graph/resume')
-  resumeGraph(@Param('sessionId') sessionId: string, @Body(new ZodValidationPipe(quizAnswerSchema)) body: QuizAnswerInput) {
+  resumeGraph(
+    @Param('sessionId') sessionId: string,
+    @Body(new ZodValidationPipe(quizAnswerSchema)) body: QuizAnswerInput,
+  ) {
     return this.quizzes.resumeGraph(sessionId, body);
   }
 
   @Post('sessions/:sessionId/answers')
-  submit(@Param('sessionId') sessionId: string, @Body(new ZodValidationPipe(submitAnswerSchema)) body: SubmitAnswerInput) {
+  submit(
+    @Param('sessionId') sessionId: string,
+    @Body(new ZodValidationPipe(submitAnswerSchema)) body: SubmitAnswerInput,
+  ) {
     return this.quizzes.submit(sessionId, body, body.version).then(toPublicSession);
   }
 

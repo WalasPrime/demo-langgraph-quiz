@@ -20,9 +20,7 @@ describe('validateConfig', () => {
   });
 
   it('normalizes a configured port and MongoDB URI', () => {
-    expect(
-      validateConfig({ MONGODB_URI: 'mongodb://localhost:27017/quiz', PORT: '3100' }),
-    ).toEqual({
+    expect(validateConfig({ MONGODB_URI: 'mongodb://localhost:27017/quiz', PORT: '3100' })).toEqual({
       MONGODB_URI: 'mongodb://localhost:27017/quiz',
       MONGODB_DB: 'toploox',
       OPENAI_BASE_URL: 'https://api.openai.com/v1',

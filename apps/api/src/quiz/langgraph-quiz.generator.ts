@@ -5,24 +5,34 @@ import { z } from 'zod';
 import { AppConfig } from '../config/configuration';
 import { QuizQuestionGenerator } from './quiz.orchestration';
 import { QuizQuestion as DomainQuestion } from './quiz.types';
-import { quizQuestionSchema, quizQuestionsSchema } from './quiz.schemas';
+import { quizQuestionSchema } from './quiz.schemas';
 import { QuizGraphCheckpointer } from './langgraph-checkpointer';
 import { createHash } from 'node:crypto';
 
 export const QUIZ_MODEL = Symbol('QUIZ_MODEL');
 export interface QuizModel {
-  withStructuredOutput(schema: z.ZodTypeAny, config: { method: 'jsonSchema'; name?: string; strict?: boolean }): {
+  withStructuredOutput(
+    schema: z.ZodTypeAny,
+    config: { method: 'jsonSchema'; name?: string; strict?: boolean },
+  ): {
     invoke(input: unknown): Promise<unknown>;
   };
 }
 
-export const quizSchema = z.object({
-  answerable: z.boolean(),
-  reason: z.string(),
-  questions: z.array(quizQuestionSchema).max(8),
-}).strict();
+export const quizSchema = z
+  .object({
+    answerable: z.boolean(),
+    reason: z.string(),
+    questions: z.array(quizQuestionSchema).max(8),
+  })
+  .strict();
 export const injectionSchema = z.object({ injectionDetected: z.boolean() }).strict();
-const graphState = Annotation.Root({ markdown: Annotation<string>(), topic: Annotation<string>(), repair: Annotation<string>(), output: Annotation<unknown>() });
+const graphState = Annotation.Root({
+  markdown: Annotation<string>(),
+  topic: Annotation<string>(),
+  repair: Annotation<string>(),
+  output: Annotation<unknown>(),
+});
 
 @Injectable()
 export class LangGraphQuizQuestionGenerator implements QuizQuestionGenerator {
@@ -44,7 +54,9 @@ export class LangGraphQuizQuestionGenerator implements QuizQuestionGenerator {
       const parsed = quizSchema.safeParse(state.output);
       if (parsed.success) {
         if (!parsed.data.answerable) {
-          throw new BadRequestException(parsed.data.reason || 'The source does not contain enough information for this topic.');
+          throw new BadRequestException(
+            parsed.data.reason || 'The source does not contain enough information for this topic.',
+          );
         }
         try {
           this.validateDomain(parsed.data.questions as readonly DomainQuestion[]);
@@ -68,9 +80,15 @@ export class LangGraphQuizQuestionGenerator implements QuizQuestionGenerator {
 
   private async createGraph(): Promise<any> {
     const saver = await this.checkpointer.get();
-    const structuredModel = this.model.withStructuredOutput(quizSchema, { method: 'jsonSchema', name: 'quiz', strict: true });
+    const structuredModel = this.model.withStructuredOutput(quizSchema, {
+      method: 'jsonSchema',
+      name: 'quiz',
+      strict: true,
+    });
     return new StateGraph(graphState)
-      .addNode('generate', async (state) => ({ output: await structuredModel.invoke(this.prompt(state.markdown, state.topic, state.repair)) }))
+      .addNode('generate', async (state) => ({
+        output: await structuredModel.invoke(this.prompt(state.markdown, state.topic, state.repair)),
+      }))
       .addEdge(START, 'generate')
       .addEdge('generate', END)
       .compile({ checkpointer: saver });
@@ -84,11 +102,14 @@ export class LangGraphQuizQuestionGenerator implements QuizQuestionGenerator {
     if (questions.length < 5 || questions.length > 8) throw new Error('Generated quiz must contain 5-8 questions');
     const ids = new Set<string>();
     for (const question of questions) {
-      if (ids.has(question.id) || new Set(question.options.map((option) => option.id)).size !== 4) throw new Error('Generated quiz has duplicate question or option IDs');
+      if (ids.has(question.id) || new Set(question.options.map((option) => option.id)).size !== 4)
+        throw new Error('Generated quiz has duplicate question or option IDs');
       ids.add(question.id);
       const optionIds = new Set(question.options.map((option) => option.id));
-      if (question.type === 'single-choice' && !optionIds.has(question.correctOptionId)) throw new Error('Generated single-choice answer is invalid');
-      if (question.type === 'multi-choice' && question.requiredOptionIds.some((id) => !optionIds.has(id))) throw new Error('Generated multi-choice answer is invalid');
+      if (question.type === 'single-choice' && !optionIds.has(question.correctOptionId))
+        throw new Error('Generated single-choice answer is invalid');
+      if (question.type === 'multi-choice' && question.requiredOptionIds.some((id) => !optionIds.has(id)))
+        throw new Error('Generated multi-choice answer is invalid');
     }
   }
 }
