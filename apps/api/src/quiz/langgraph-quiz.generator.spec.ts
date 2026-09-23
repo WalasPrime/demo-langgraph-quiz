@@ -17,15 +17,15 @@ describe('LangGraphQuizQuestionGenerator', () => {
     const model = {
       withStructuredOutput: jest.fn().mockReturnValue({
         invoke: jest.fn()
-          .mockResolvedValueOnce({ questions: validQuestions.slice(0, 4) })
-          .mockResolvedValueOnce({ questions: validQuestions }),
+          .mockResolvedValueOnce({ answerable: true, reason: '', questions: validQuestions.slice(0, 4) })
+          .mockResolvedValueOnce({ answerable: true, reason: '', questions: validQuestions }),
       }),
     };
     const generator = new LangGraphQuizQuestionGenerator(config, checkpointer as never, model);
 
     await expect(generator.generate('# source', 'TypeScript', '00000000-0000-4000-8000-000000000001')).resolves.toHaveLength(5);
     const invoke = model.withStructuredOutput.mock.results[0].value.invoke;
-    expect(model.withStructuredOutput).toHaveBeenCalledWith(expect.anything(), { method: 'jsonSchema' });
+    expect(model.withStructuredOutput).toHaveBeenCalledWith(expect.anything(), { method: 'jsonSchema', name: 'quiz', strict: true });
     expect(invoke).toHaveBeenCalledTimes(2);
     expect(invoke.mock.calls[1][0]).toContain('previous output was invalid');
   });

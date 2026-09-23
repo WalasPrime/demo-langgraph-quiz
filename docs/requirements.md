@@ -37,6 +37,14 @@ This document records the requirements agreed during implementation discussions.
 - Answer submission resumes the graph through `POST /api/quizzes/sessions/:sessionId/graph/resume`.
 - A completed or error snapshot is terminal for the frontend view.
 
+## Prompt Injection And Source Relevance
+
+- The topic and fetched Markdown are untrusted model input and must be classified independently before quiz generation.
+- Each classifier invocation uses a fixed three-message history and a strict structured result. A detected direct or indirect prompt injection persists a safe `PROMPT_INJECTION_DETECTED` graph error and no quiz is generated.
+- The quiz-generation result must explicitly report whether the source is answerable for the requested topic. An unrelated or insufficient source persists `SOURCE_NOT_ANSWERABLE`, and the frontend presents that state as a source/topic mismatch rather than an empty quiz.
+- Public graph state must expose only the safe error code and message; it must not expose classifier prompts, raw Markdown, provider details, or answer keys.
+- Structured-output schemas use strict JSON Schema mode. Every schema property is required, and the schema must be provider-compatible rather than relying on unresolved Zod `$ref` definitions or optional fields.
+
 ## Refresh And Recovery
 
 - A refresh during generation must recover through the session URL and checkpoint snapshot.

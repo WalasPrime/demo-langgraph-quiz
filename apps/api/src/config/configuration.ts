@@ -96,7 +96,7 @@ export function validateConfig(config: Record<string, unknown>): AppConfig {
     OPENAI_BASE_URL: parseString(config.OPENAI_BASE_URL, 'https://api.openai.com/v1'),
     OPENAI_API_KEY: String(config.OPENAI_API_KEY ?? '').trim(),
     OPENAI_MODEL: parseString(config.OPENAI_MODEL, 'gpt-4o-mini'),
-    OPENAI_TIMEOUT_MS: parsePositiveInteger(config.OPENAI_TIMEOUT_MS, 30_000, 'OPENAI_TIMEOUT_MS'),
+    OPENAI_TIMEOUT_MS: parsePositiveInteger(config.OPENAI_TIMEOUT_MS, 300_000, 'OPENAI_TIMEOUT_MS'),
     OPENAI_MAX_TOKENS: parsePositiveInteger(config.OPENAI_MAX_TOKENS, 4_000, 'OPENAI_MAX_TOKENS'),
     QUIZ_GENERATION_RETRIES: parsePositiveInteger(config.QUIZ_GENERATION_RETRIES, 2, 'QUIZ_GENERATION_RETRIES'),
     PORT: parsePort(config.PORT),

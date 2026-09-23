@@ -32,10 +32,12 @@ export function App(): JSX.Element {
   const [topic, setTopic] = useState('');
   const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const pollTimer = useRef<number | undefined>(undefined);
 
   const showError = (error: unknown): void => {
     setErrorMessage(error instanceof Error ? error.message : 'Unable to reach the quiz service.');
+    setErrorCode(null);
     setView('error');
   };
 
@@ -46,6 +48,7 @@ export function App(): JSX.Element {
     else if (nextState.status === 'awaiting_answer') setView('active');
     else if (nextState.status === 'error') {
       setErrorMessage(nextState.error?.message ?? 'Quiz generation failed.');
+      setErrorCode(nextState.error?.code ?? null);
       setView('error');
     } else setView('loading');
   };
@@ -54,6 +57,7 @@ export function App(): JSX.Element {
     event.preventDefault();
     setView('loading');
     setErrorMessage(null);
+    setErrorCode(null);
     void api.startGraph(sourceUrl, topic.trim()).then((state) => {
       window.history.pushState({}, '', `/quiz/${encodeURIComponent(state.id)}`);
       setSessionId(state.id);
@@ -78,7 +82,7 @@ export function App(): JSX.Element {
       void api.getGraphState(sessionId).then((state) => {
         if (cancelled) return;
         openState(state);
-        if (['pending', 'running', 'starting', 'fetching', 'generating', 'grading'].includes(state.status)) {
+        if (['pending', 'running', 'starting', 'fetching', 'classifying', 'generating', 'grading'].includes(state.status)) {
           pollTimer.current = window.setTimeout(poll, POLL_INTERVAL_MS);
         }
       }).catch((error: unknown) => {
@@ -113,7 +117,7 @@ export function App(): JSX.Element {
       <main>
         {view === 'setup' && <SetupForm sourceUrl={sourceUrl} topic={topic} onSourceUrlChange={setSourceUrl} onTopicChange={setTopic} onSubmit={startQuiz} />}
         {view === 'loading' && <LoadingState />}
-        {view === 'error' && <ErrorState message={errorMessage ?? 'Unable to reach the quiz service.'} onRetry={() => sessionId ? setPollNonce((value) => value + 1) : setView('setup')} />}
+        {view === 'error' && <ErrorState code={errorCode} message={errorMessage ?? 'Unable to reach the quiz service.'} onRetry={() => sessionId ? setPollNonce((value) => value + 1) : setView('setup')} />}
         {view === 'active' && graphState && <QuizView state={graphState} selectedOptionIds={selectedOptionIds} onSelectionChange={setSelectedOptionIds} onSubmit={(answer) => {
           setView('loading');
           if (pollTimer.current !== undefined) window.clearTimeout(pollTimer.current);
@@ -147,8 +151,9 @@ function LoadingState(): JSX.Element {
   return <Card className="state-card"><Spinner label="Loading quiz..." /></Card>;
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }): JSX.Element {
-  return <MessageBar intent="error"><DismissCircleRegular /><MessageBarBody><MessageBarTitle>We couldn&apos;t load the quiz</MessageBarTitle><div>{message}</div><Button appearance="primary" onClick={onRetry}>Try again</Button></MessageBarBody></MessageBar>;
+function ErrorState({ code, message, onRetry }: { code: string | null; message: string; onRetry: () => void }): JSX.Element {
+  const title = code === 'SOURCE_NOT_ANSWERABLE' ? 'This source does not match the topic' : code === 'PROMPT_INJECTION_DETECTED' ? 'Quiz request blocked' : 'We couldn&apos;t load the quiz';
+  return <MessageBar intent="error"><DismissCircleRegular /><MessageBarBody><MessageBarTitle>{title}</MessageBarTitle><div>{message}</div><Button appearance="primary" onClick={onRetry}>Try again</Button></MessageBarBody></MessageBar>;
 }
 
 function ResultView({ state, onRestart }: { state: PublicGraphState; onRestart: () => void }): JSX.Element {

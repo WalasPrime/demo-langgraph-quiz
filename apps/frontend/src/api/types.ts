@@ -43,7 +43,7 @@ export interface QuizResult {
   questionScores: QuestionScore[];
 }
 
-export type GraphStatus = 'pending' | 'running' | 'starting' | 'fetching' | 'generating' | 'awaiting_answer' | 'grading' | 'completed' | 'error';
+export type GraphStatus = 'pending' | 'running' | 'starting' | 'fetching' | 'classifying' | 'generating' | 'awaiting_answer' | 'grading' | 'completed' | 'error';
 
 export interface PublicGraphState {
   id: string;
