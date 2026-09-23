@@ -44,6 +44,18 @@ describe('quiz flow', () => {
     expect(screen.getByRole('button', { name: 'Generate quiz' })).toBeInTheDocument();
   });
 
+  it('maps graph error codes to fixed frontend messages', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({
+      ...graphState({ status: 'error', error: { code: 'SOURCE_NOT_ANSWERABLE' } }),
+    })));
+    render(<App />);
+    fireEvent.change(screen.getAllByRole('textbox')[1], { target: { value: 'Cooking' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Generate quiz' }));
+
+    expect(await screen.findByText('The source does not contain enough information about this topic.')).toBeInTheDocument();
+    expect(screen.queryByText(/recipe does not explain/i)).not.toBeInTheDocument();
+  });
+
   it('selects and submits one question with the session version', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response(graphState({ status: 'pending', currentQuestionIndex: undefined })))

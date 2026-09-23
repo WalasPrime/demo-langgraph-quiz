@@ -1,6 +1,5 @@
 export type {
   PublicQuizQuestionInput as PublicQuizQuestion,
-  PublicQuizSessionInput as PublicQuizSession,
   QuestionScoreInput as QuestionScore,
   QuizAnswerInput as QuizAnswer,
   QuizQuestionInput as QuizQuestion,

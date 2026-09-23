@@ -70,12 +70,6 @@ export const publicQuizQuestionSchema = z.discriminatedUnion('type', [
   multiChoiceQuestionSchema.omit({ requiredOptionIds: true }),
 ]);
 
-export const publicQuizSessionSchema = quizSessionSchema
-  .extend({
-    questions: z.array(publicQuizQuestionSchema).min(5).max(8),
-  })
-  .strict();
-
 export const startQuizSchema = z
   .object({
     sourceUrl: z
@@ -86,8 +80,6 @@ export const startQuizSchema = z
   })
   .strict();
 
-export const submitAnswerSchema = quizAnswerSchema.extend({ version: z.number().int().min(0) }).strict();
-
 export type QuizQuestionInput = z.infer<typeof quizQuestionSchema>;
 export type QuizQuestionsInput = z.infer<typeof quizQuestionsSchema>;
 export type QuizAnswerInput = z.infer<typeof quizAnswerSchema>;
@@ -95,7 +87,3 @@ export type QuestionScoreInput = z.infer<typeof questionScoreSchema>;
 export type QuizScoreInput = z.infer<typeof quizScoreSchema>;
 export type QuizSessionInput = z.infer<typeof quizSessionSchema>;
 export type PublicQuizQuestionInput = z.infer<typeof publicQuizQuestionSchema>;
-export type PublicQuizSessionInput = z.infer<typeof publicQuizSessionSchema>;
-export type StartQuizInput = z.infer<typeof startQuizSchema>;
-export type SubmitAnswerInput = z.infer<typeof submitAnswerSchema>;
-export type QuizGenerationInput = z.infer<typeof quizQuestionsSchema>;

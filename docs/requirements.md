@@ -42,7 +42,8 @@ This document records the requirements agreed during implementation discussions.
 - The topic and fetched Markdown are untrusted model input and must be classified independently before quiz generation.
 - Each classifier invocation uses a fixed three-message history and a strict structured result. A detected direct or indirect prompt injection persists a safe `PROMPT_INJECTION_DETECTED` graph error and no quiz is generated.
 - The quiz-generation result must explicitly report whether the source is answerable for the requested topic. An unrelated or insufficient source persists `SOURCE_NOT_ANSWERABLE`, and the frontend presents that state as a source/topic mismatch rather than an empty quiz.
-- Public graph state must expose only the safe error code and message; it must not expose classifier prompts, raw Markdown, provider details, or answer keys.
+- Public graph state must expose only a safe error code; it must not expose model-generated error reasons, classifier prompts, raw Markdown, provider details, or answer keys.
+- The frontend maps backend error codes to fixed user-facing messages and must not render model output directly.
 - Structured-output schemas use strict JSON Schema mode. Every schema property is required, and the schema must be provider-compatible rather than relying on unresolved Zod `$ref` definitions or optional fields.
 
 ## Refresh And Recovery
@@ -55,13 +56,11 @@ This document records the requirements agreed during implementation discussions.
 
 ## API Contract
 
-The graph-backed frontend uses:
+The graph-backed API uses:
 
 - `POST /api/quizzes/graph` to create a session and return its initial public snapshot.
 - `GET /api/quizzes/sessions/:sessionId/graph` to read the current public snapshot.
 - `POST /api/quizzes/sessions/:sessionId/graph/resume` to submit one answer and return the next snapshot.
-
-The older session routes remain available for compatibility with existing clients. They are not the frontend's orchestration source of truth.
 
 ## Existing Quiz Constraints
 

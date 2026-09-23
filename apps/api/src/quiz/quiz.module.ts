@@ -5,13 +5,13 @@ import { QuizApplicationService } from './quiz.application';
 import { QUIZ_SESSION_STORE } from './quiz.persistence';
 import { MarkdownSourceService } from '../source/markdown-source.service';
 import { MongoQuizSessionStore } from './mongodb-quiz.persistence';
-import { LangGraphQuizQuestionGenerator, QUIZ_MODEL } from './langgraph-quiz.generator';
+import { QUIZ_MODEL } from './langgraph-quiz.generator';
 import { QuizGraphCheckpointer } from './langgraph-checkpointer';
 import { ChatOpenAI } from '@langchain/openai';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../config/configuration';
-import { QUIZ_QUESTION_GENERATOR } from './quiz.orchestration';
 import { LangGraphQuizWorkflow } from './langgraph-quiz.workflow';
+import { MongoClientProvider } from './mongo-client';
 
 @Module({
   controllers: [QuizController],
@@ -20,10 +20,9 @@ import { LangGraphQuizWorkflow } from './langgraph-quiz.workflow';
     QuizApplicationService,
     MarkdownSourceService,
     MongoQuizSessionStore,
+    MongoClientProvider,
     QuizGraphCheckpointer,
-    LangGraphQuizQuestionGenerator,
     LangGraphQuizWorkflow,
-    { provide: QUIZ_QUESTION_GENERATOR, useExisting: LangGraphQuizQuestionGenerator },
     {
       provide: QUIZ_MODEL,
       inject: [ConfigService],

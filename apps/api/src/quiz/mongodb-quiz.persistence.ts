@@ -1,11 +1,13 @@
-import { ConflictException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Collection, MongoClient } from 'mongodb';
+import { Collection } from 'mongodb';
 import { AppConfig } from '../config/configuration';
 import { QuizAnswer, QuizQuestion, QuizScore, QuizSession } from './quiz.types';
 import { QuizSessionStore } from './quiz.persistence';
 import { randomUUID } from 'node:crypto';
 import { quizSessionSchema } from './quiz.schemas';
+import { MongoClientProvider } from './mongo-client';
+import { sameAnswerSelection } from './quiz.validation';
 
 interface QuizDocument {
   _id: string;
@@ -19,13 +21,13 @@ interface QuizDocument {
 }
 
 @Injectable()
-export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy {
-  private readonly client: MongoClient;
+export class MongoQuizSessionStore implements QuizSessionStore {
   private collectionPromise?: Promise<Collection<QuizDocument>>;
 
-  constructor(private readonly config: ConfigService<AppConfig, true>) {
-    this.client = new MongoClient(this.config.getOrThrow('MONGODB_URI'));
-  }
+  constructor(
+    private readonly config: ConfigService<AppConfig, true>,
+    private readonly mongo: MongoClientProvider,
+  ) {}
 
   async create(
     sourceUrl: string,
@@ -57,8 +59,7 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
     if (!current) throw new NotFoundException('Quiz session not found');
     const previous = current.answers.find((item) => item.questionId === answer.questionId);
     const selectedOptionIds = [...answer.selectedOptionIds].sort();
-    if (previous && JSON.stringify([...previous.selectedOptionIds].sort()) === JSON.stringify(selectedOptionIds))
-      return this.fromDocument(current);
+    if (previous && sameAnswerSelection(previous, answer)) return this.fromDocument(current);
     if (current.version !== version) throw new ConflictException('Quiz session version is stale');
     if (previous) throw new ConflictException('Question has already been answered');
 
@@ -81,18 +82,14 @@ export class MongoQuizSessionStore implements QuizSessionStore, OnModuleDestroy 
     return this.fromDocument(result);
   }
 
-  async onModuleDestroy(): Promise<void> {
-    await this.client.close();
-  }
-
   private async collection(): Promise<Collection<QuizDocument>> {
     this.collectionPromise ??= this.connect();
     return this.collectionPromise;
   }
 
   private async connect(): Promise<Collection<QuizDocument>> {
-    await this.client.connect();
-    return this.client.db(this.config.getOrThrow('MONGODB_DB')).collection<QuizDocument>('quiz_sessions');
+    const client = await this.mongo.get();
+    return client.db(this.config.getOrThrow('MONGODB_DB')).collection<QuizDocument>('quiz_sessions');
   }
 
   private toDocument(session: QuizSession): QuizDocument {

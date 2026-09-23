@@ -22,16 +22,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api: ApiClient = {
 	getHealth: () => request('/api/health'),
-	startQuiz: (sourceUrl, topic) => request('/api/quizzes', {
-		method: 'POST',
-		body: JSON.stringify({ sourceUrl, topic }),
-	}),
-	getSession: (sessionId) => request(`/api/quizzes/sessions/${encodeURIComponent(sessionId)}`),
-	submitAnswer: (sessionId, answer, version) => request(`/api/quizzes/sessions/${encodeURIComponent(sessionId)}/answers`, {
-		method: 'POST',
-		body: JSON.stringify({ ...answer, version }),
-	}),
-	getResult: (sessionId) => request(`/api/quizzes/sessions/${encodeURIComponent(sessionId)}/result`),
 	startGraph: (sourceUrl, topic) => request('/api/quizzes/graph', {
 		method: 'POST',
 		body: JSON.stringify({ sourceUrl, topic }),

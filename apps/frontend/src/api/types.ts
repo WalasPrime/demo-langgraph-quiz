@@ -57,15 +57,11 @@ export interface PublicGraphState {
   runningAt?: string;
   updatedAt: string;
   score?: QuizResult;
-  error?: { code: string; message: string };
+  error?: { code: string };
 }
 
 export interface ApiClient {
   getHealth(): Promise<HealthResponse>;
-  startQuiz(sourceUrl: string, topic: string): Promise<QuizSession>;
-  getSession(sessionId: string): Promise<QuizSession>;
-  submitAnswer(sessionId: string, answer: QuizAnswer, version: number): Promise<QuizSession>;
-  getResult(sessionId: string): Promise<QuizResult>;
   startGraph(sourceUrl: string, topic: string): Promise<PublicGraphState>;
   getGraphState(sessionId: string): Promise<PublicGraphState>;
   resumeGraph(sessionId: string, answer: QuizAnswer): Promise<PublicGraphState>;

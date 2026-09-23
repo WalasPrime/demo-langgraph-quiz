@@ -10,7 +10,6 @@ These flows describe observable user behavior. Use accessible labels, roles, and
 - Default source URL: `https://raw.githubusercontent.com/pipecat-ai/pipecat/refs/heads/main/README.md`.
 - Use a topic that is specific to the selected README, such as `Pipecat architecture`.
 - The browser uses the graph routes: `POST /api/quizzes/graph`, `GET /api/quizzes/sessions/:sessionId/graph`, and `POST /api/quizzes/sessions/:sessionId/graph/resume`.
-- The compatibility session routes remain available for legacy API clients: `POST /api/quizzes`, `GET /api/quizzes/sessions/:sessionId`, `POST /api/quizzes/sessions/:sessionId/answers`, and `GET /api/quizzes/sessions/:sessionId/result`.
 - A started quiz is represented in the frontend URL as `/quiz/:sessionId`. The session ID is generated and returned by the backend; it is never entered by the user.
 - Live generation requires a configured, reachable OpenAI-compatible provider. If it is unavailable, mark generation-dependent flows `blocked` with the provider error.
 - A generated quiz must contain 5-8 questions. Each question has four options, and answer keys must never appear in browser-visible content or public API responses.
@@ -103,7 +102,7 @@ These flows describe observable user behavior. Use accessible labels, roles, and
 
 1. Attempt to submit an answer with an empty `questionId`, more than four option IDs, or an unknown option ID.
 2. Attempt to submit an answer for a question other than the current unanswered question.
-3. Repeat a previously accepted answer through the compatibility session route with the same session version.
+3. Repeat a previously accepted answer through the graph resume route.
 4. Submit a different answer for an already answered question.
 5. Submit an answer using an old session version after another answer has been accepted.
 

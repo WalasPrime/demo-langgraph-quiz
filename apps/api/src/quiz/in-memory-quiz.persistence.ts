@@ -2,6 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { randomUUID } from 'node:crypto';
 import { QuizAnswer, QuizQuestion, QuizScore, QuizSession } from './quiz.types';
 import { QuizSessionStore } from './quiz.persistence';
+import { sameAnswerSelection } from './quiz.validation';
 
 @Injectable()
 export class InMemoryQuizSessionStore implements QuizSessionStore {
@@ -34,8 +35,7 @@ export class InMemoryQuizSessionStore implements QuizSessionStore {
     const session = this.sessions.get(sessionId);
     if (!session) throw new NotFoundException('Quiz session not found');
     const previous = session.answers.find((item) => item.questionId === answer.questionId);
-    if (previous && JSON.stringify(previous.selectedOptionIds) === JSON.stringify(answer.selectedOptionIds))
-      return session;
+    if (previous && sameAnswerSelection(previous, answer)) return session;
     if (session.version !== version) throw new ConflictException('Quiz session version is stale');
     if (previous) throw new ConflictException('Question has already been answered');
     const updated: QuizSession = { ...session, answers: [...session.answers, answer], version: session.version + 1 };

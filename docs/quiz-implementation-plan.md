@@ -15,12 +15,12 @@ Turn the NestJS and React scaffold into a resumable quiz application that fetche
 
 ## Data Flow
 
-1. The client sends a source URL and topic to `POST /api/quizzes`.
+1. The client sends a source URL and topic to `POST /api/quizzes/graph`.
 2. The API validates and fetches bounded Markdown from an allowed host.
 3. A LangGraph thread generates structured questions and retries invalid model output within a configured limit.
 4. The graph checkpoint is stored in MongoDB for workflow resume.
-5. A denormalized MongoDB session projection stores source metadata, questions, submitted answers, status, version, and score.
-6. The client submits one answer at a time with the session version. Repeated identical submissions are idempotent.
+5. A denormalized MongoDB session projection stores source metadata, questions, submitted answers, status, version, and score for graph-session recovery.
+6. The client submits one answer at a time through `POST /api/quizzes/sessions/:sessionId/graph/resume`.
 7. The API calculates the weighted score using ordered weights `1.0 * 1.1^index` and stores the result.
 
 ## Scoring

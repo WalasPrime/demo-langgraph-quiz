@@ -1,31 +1,26 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MongoClient } from 'mongodb';
 import { MongoDBSaver } from '@langchain/langgraph-checkpoint-mongodb';
 import { AppConfig } from '../config/configuration';
+import { MongoClientProvider } from './mongo-client';
 
 @Injectable()
-export class QuizGraphCheckpointer implements OnModuleDestroy {
-  private readonly client: MongoClient;
+export class QuizGraphCheckpointer {
   private saverPromise?: Promise<MongoDBSaver>;
 
-  constructor(private readonly config: ConfigService<AppConfig, true>) {
-    this.client = new MongoClient(this.config.getOrThrow('MONGODB_URI'));
-  }
+  constructor(
+    private readonly config: ConfigService<AppConfig, true>,
+    private readonly mongo: MongoClientProvider,
+  ) {}
 
   async get(): Promise<MongoDBSaver> {
     this.saverPromise ??= this.connect();
     return this.saverPromise;
   }
 
-  async onModuleDestroy(): Promise<void> {
-    await this.client.close();
-  }
-
   private async connect(): Promise<MongoDBSaver> {
-    await this.client.connect();
     const saver = new MongoDBSaver({
-      client: this.client,
+      client: await this.mongo.get(),
       dbName: this.config.getOrThrow('MONGODB_DB'),
       enableTimestamps: true,
     });

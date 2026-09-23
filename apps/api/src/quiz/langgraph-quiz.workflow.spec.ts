@@ -122,10 +122,7 @@ describe('LangGraphQuizWorkflow', () => {
     const rejected = await workflow.run(initial.sessionId);
 
     expect(rejected.status).toBe('error');
-    expect(rejected.error).toEqual({
-      code: 'SOURCE_NOT_ANSWERABLE',
-      message: 'The recipe does not explain Kubernetes.',
-    });
+    expect(rejected.error).toEqual({ code: 'SOURCE_NOT_ANSWERABLE' });
     expect(workflow.toPublic(rejected).questions).toEqual([]);
   });
 });

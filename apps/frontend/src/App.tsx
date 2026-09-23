@@ -17,6 +17,15 @@ const brandRamp: BrandVariants = {
 const theme = createLightTheme(brandRamp);
 type View = 'setup' | 'loading' | 'active' | 'completed' | 'error';
 const POLL_INTERVAL_MS = 1000;
+const ERROR_MESSAGES: Record<string, string> = {
+  SOURCE_NOT_ANSWERABLE: 'The source does not contain enough information about this topic.',
+  PROMPT_INJECTION_DETECTED: 'This quiz request was blocked because the topic or source contained unsupported instructions.',
+  SOURCE_FETCH_FAILED: 'The source could not be loaded. Check the URL and try again.',
+  PROMPT_INJECTION_CHECK_FAILED: 'The source could not be checked safely. Try again with a different source.',
+  QUIZ_GENERATION_FAILED: 'The quiz could not be generated from this source. Try again.',
+  ANSWER_REJECTED: 'That answer could not be accepted. Start a new quiz and try again.',
+  WORKFLOW_FAILED: 'The quiz service could not complete the request. Try again.',
+};
 
 function sessionIdFromLocation(): string | null {
   const match = window.location.pathname.match(/^\/quiz\/([^/]+)$/);
@@ -46,7 +55,7 @@ export function App(): JSX.Element {
     if (nextState.status === 'completed') setView('completed');
     else if (nextState.status === 'awaiting_answer') setView('active');
     else if (nextState.status === 'error') {
-      setErrorMessage(nextState.error?.message ?? 'Quiz generation failed.');
+      setErrorMessage(null);
       setErrorCode(nextState.error?.code ?? null);
       setView('error');
     } else setView('loading');
@@ -116,7 +125,7 @@ export function App(): JSX.Element {
       <main>
         {view === 'setup' && <SetupForm sourceUrl={sourceUrl} topic={topic} onSourceUrlChange={setSourceUrl} onTopicChange={setTopic} onSubmit={startQuiz} />}
         {view === 'loading' && <LoadingState />}
-        {view === 'error' && <ErrorState code={errorCode} message={errorMessage ?? 'Unable to reach the quiz service.'} onRestart={restart} />}
+        {view === 'error' && <ErrorState code={errorCode} message={errorMessage} onRestart={restart} />}
         {view === 'active' && graphState && <QuizView state={graphState} selectedOptionIds={selectedOptionIds} onSelectionChange={setSelectedOptionIds} onSubmit={(answer) => {
           setView('loading');
           if (pollTimer.current !== undefined) window.clearTimeout(pollTimer.current);
@@ -150,9 +159,10 @@ function LoadingState(): JSX.Element {
   return <Card className="state-card"><Spinner label="Loading quiz..." /></Card>;
 }
 
-function ErrorState({ code, message, onRestart }: { code: string | null; message: string; onRestart: () => void }): JSX.Element {
+function ErrorState({ code, message, onRestart }: { code: string | null; message: string | null; onRestart: () => void }): JSX.Element {
   const title = code === 'SOURCE_NOT_ANSWERABLE' ? 'This source does not match the topic' : code === 'PROMPT_INJECTION_DETECTED' ? 'Quiz request blocked' : 'We couldn&apos;t load the quiz';
-  return <MessageBar intent="error"><DismissCircleRegular /><MessageBarBody><MessageBarTitle>{title}</MessageBarTitle><div>{message}</div><Button appearance="primary" onClick={onRestart}>Start new quiz</Button></MessageBarBody></MessageBar>;
+  const text = message ?? (code ? ERROR_MESSAGES[code] : undefined) ?? 'Unable to reach the quiz service.';
+  return <MessageBar intent="error"><DismissCircleRegular /><MessageBarBody><MessageBarTitle>{title}</MessageBarTitle><div>{text}</div><Button appearance="primary" onClick={onRestart}>Start new quiz</Button></MessageBarBody></MessageBar>;
 }
 
 function ResultView({ state, onRestart }: { state: PublicGraphState; onRestart: () => void }): JSX.Element {

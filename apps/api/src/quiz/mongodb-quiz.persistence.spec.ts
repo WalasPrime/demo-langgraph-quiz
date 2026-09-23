@@ -29,12 +29,12 @@ describe('MongoQuizSessionStore', () => {
         .mockResolvedValueOnce({ ...document, answers: [{ questionId: 'q1', selectedOptionIds: ['a'] }], version: 1 }),
       updateOne: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
     };
-    const first = new MongoQuizSessionStore({
+    const config = {
       getOrThrow: jest.fn((key: string) => (key === 'MONGODB_URI' ? 'mongodb://localhost:27017/toploox' : 'toploox')),
-    } as unknown as ConfigService<any, true>);
-    const second = new MongoQuizSessionStore({
-      getOrThrow: jest.fn((key: string) => (key === 'MONGODB_URI' ? 'mongodb://localhost:27017/toploox' : 'toploox')),
-    } as unknown as ConfigService<any, true>);
+    } as unknown as ConfigService<any, true>;
+    const mongo = { get: jest.fn() } as never;
+    const first = new MongoQuizSessionStore(config, mongo);
+    const second = new MongoQuizSessionStore(config, mongo);
     (first as any).collectionPromise = Promise.resolve(collection);
     (second as any).collectionPromise = Promise.resolve({
       ...collection,
