@@ -160,7 +160,7 @@ function LoadingState(): JSX.Element {
 }
 
 function ErrorState({ code, message, onRestart }: { code: string | null; message: string | null; onRestart: () => void }): JSX.Element {
-  const title = code === 'SOURCE_NOT_ANSWERABLE' ? 'This source does not match the topic' : code === 'PROMPT_INJECTION_DETECTED' ? 'Quiz request blocked' : 'We couldn&apos;t load the quiz';
+  const title = code === 'SOURCE_NOT_ANSWERABLE' ? 'This source does not match the topic' : code === 'PROMPT_INJECTION_DETECTED' ? 'Quiz request blocked' : "We couldn't load the quiz";
   const text = message ?? (code ? ERROR_MESSAGES[code] : undefined) ?? 'Unable to reach the quiz service.';
   return <MessageBar intent="error"><DismissCircleRegular /><MessageBarBody><MessageBarTitle>{title}</MessageBarTitle><div>{text}</div><Button appearance="primary" onClick={onRestart}>Start new quiz</Button></MessageBarBody></MessageBar>;
 }
