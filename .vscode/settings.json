@@ -3,6 +3,7 @@
 	"chat.editor.preferCopilotHarness": false,
 	"chat.defaultToCopilotHarness": false,
 	"chat.tools.terminal.autoApprove": {
-		"docker compose": true
+		"docker compose": true,
+		"awk": true
 	}
 }
