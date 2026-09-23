@@ -25,15 +25,24 @@
 - `GET /` -> frontend HTML shell (200)
 
 ## Database
-- None. No migrations or seed data are required.
+- MongoDB is provided by the `mongodb` Compose service and is configurable through
+	`MONGODB_URI` and `MONGODB_DB`. Quiz sessions are stored in the Mongo projection;
+	LangGraph checkpoints are also stored in Mongo and are authoritative for workflow
+	resume by `thread_id`.
+- Markdown ingestion is restricted by `MARKDOWN_ALLOWED_HOSTS` and bounded by
+	`MARKDOWN_MAX_BYTES` and `MARKDOWN_TIMEOUT_MS`.
+- Quiz generation uses `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL`,
+	`OPENAI_TIMEOUT_MS`, `OPENAI_MAX_TOKENS`, and bounded `QUIZ_GENERATION_RETRIES`.
 
 ## Shared Types
 - None. No shared package or import alias.
 
 ## Services
-- None. No Azure-managed services.
-- Essential: stateless NestJS API and Vite React frontend.
-- Enhancement: none.
+- No Azure-managed services.
+- Essential: NestJS API, MongoDB, and Vite React frontend.
+- Enhancement: the REST start contract accepts `sourceUrl` and `topic`; the API
+	fetches Markdown, generates a structured quiz through LangGraph/LangChain, and
+	projects it to Mongo without returning answer keys.
 
 ## Dependency Storage
 - `api_node_modules` and `frontend_node_modules` are named Docker volumes shared by `workspace` and runtime services; do not install dependencies on the host.

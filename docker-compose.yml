@@ -17,6 +17,21 @@ services:
       - "3000:3000"
     environment:
       PORT: 3000
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/toploox}
+      MONGODB_DB: ${MONGODB_DB:-toploox}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_TIMEOUT_MS: ${OPENAI_TIMEOUT_MS:-30000}
+      OPENAI_MAX_TOKENS: ${OPENAI_MAX_TOKENS:-4000}
+      QUIZ_GENERATION_RETRIES: ${QUIZ_GENERATION_RETRIES:-2}
+      MARKDOWN_ALLOWED_HOSTS: ${MARKDOWN_ALLOWED_HOSTS:-github.com,raw.githubusercontent.com}
+      MARKDOWN_MAX_BYTES: ${MARKDOWN_MAX_BYTES:-1048576}
+      MARKDOWN_TIMEOUT_MS: ${MARKDOWN_TIMEOUT_MS:-5000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    depends_on:
+      mongodb:
+        condition: service_healthy
     command: sh -c "npm install && npm run start:dev"
   frontend:
     build: ./apps/frontend
@@ -27,6 +42,15 @@ services:
     ports:
       - "5173:5173"
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+  mongodb:
+    image: mongo:8
+    environment:
+      MONGO_INITDB_DATABASE: toploox
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 volumes:
   api_node_modules:
   frontend_node_modules:

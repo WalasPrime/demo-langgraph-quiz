@@ -20,6 +20,7 @@ If an expected guidance file or documentation directory is missing, say so expli
 ## Working Rules
 
 - Treat `AGENTS.md`, relevant ADRs, and relevant project documentation as constraints for implementation and validation.
+- Before interacting with any library during code modifications, use the available Context7 tools to look up its current documentation and follow the documented API and usage patterns.
 - Before editing, state the local behavior you believe controls the task and the focused check that could disconfirm it.
 - Keep changes scoped to the user's request and follow the repository's documented commands and conventions.
 - When development-environment guidance affects a command or file location, follow the ADR even if a host-side shortcut appears available.
