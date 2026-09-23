@@ -1,0 +1,7 @@
+{
+  "name": "toploox-task",
+  "private": true,
+  "scripts": {
+    "test": "npm --prefix apps/api test && npm --prefix apps/frontend test"
+  }
+}

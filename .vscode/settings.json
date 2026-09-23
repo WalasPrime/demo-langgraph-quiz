@@ -1,0 +1,8 @@
+{
+	"chat.agent.maxRequests": 9999,
+	"chat.editor.preferCopilotHarness": false,
+	"chat.defaultToCopilotHarness": false,
+	"chat.tools.terminal.autoApprove": {
+		"docker compose": true
+	}
+}

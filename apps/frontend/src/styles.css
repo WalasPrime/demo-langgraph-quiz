@@ -1,0 +1,45 @@
+:root {
+  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f6f8fb;
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: #f6f8fb; }
+.app-shell { min-height: 100vh; background: #f6f8fb; }
+.app-header, main, .app-footer { max-width: 980px; margin: 0 auto; padding-left: 32px; padding-right: 32px; }
+.app-header { padding-top: 32px; padding-bottom: 24px; }
+.app-header > .fui-Toolbar { justify-content: space-between; padding: 0; background: transparent; }
+.brand-lockup { display: flex; align-items: center; gap: 12px; }
+.brand-lockup h1 { margin: 0; font-size: 34px; line-height: 1.2; }
+.eyebrow { color: #1769aa; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.app-header .fui-TabList { margin-top: 24px; }
+main { display: grid; gap: 20px; }
+.overview-card { position: relative; overflow: hidden; border: 0; color: white; background: linear-gradient(120deg, #124a70, #1769aa 62%, #d97706); box-shadow: 0 8px 22px rgba(23, 105, 170, .18); }
+.overview-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .2; background: radial-gradient(circle at 85% 15%, white, transparent 36%); }
+.overview-card .fui-CardHeader, .overview-card .fui-CardHeader__description { color: white; }
+.status-strip { display: flex; align-items: center; gap: 9px; margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.32); font-size: 13px; }
+.status-strip span { opacity: .8; margin-left: auto; }
+.health-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.status-card { min-height: 190px; border: 1px solid #d7dee8; box-shadow: 0 1px 2px rgba(15,23,42,.06); transition: transform 180ms cubic-bezier(.4,0,.2,1), box-shadow 180ms ease; }
+.status-card:hover { transform: translateY(-2px); box-shadow: 0 5px 14px rgba(15,23,42,.1); }
+.status-card .fui-CardHeader { align-items: center; }
+.status { font-size: 13px; font-weight: 700; }
+.status-success { color: #16a34a; }
+.status-warning { color: #d97706; }
+.endpoint { margin-top: 16px; color: #667085; font: 13px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.muted { color: #667085; }
+.status-card .fui-CardFooter { margin-top: 18px; color: #667085; }
+.state-card { padding: 22px; border: 1px solid #d7dee8; }
+.skeleton-row { height: 20px; margin: 8px 0; border-radius: 6px; }
+.skeleton-row.short { width: 55%; }
+.empty-state { display: grid; justify-items: start; gap: 10px; }
+.empty-state svg { color: #d97706; }
+.fui-MessageBar { align-items: flex-start; }
+.fui-MessageBar button { margin-top: 10px; }
+.app-footer { padding-top: 12px; padding-bottom: 32px; color: #667085; }
+.app-footer .fui-Divider { margin-bottom: 14px; }
+.preview-switcher { position: fixed; right: 16px; bottom: 16px; z-index: 10; display: flex; align-items: center; gap: 4px; padding: 7px; border: 1px solid #d7dee8; border-radius: 6px; background: rgba(255,255,255,.96); box-shadow: 0 4px 12px rgba(15,23,42,.12); }
+.preview-switcher span { padding: 0 5px; color: #667085; font-size: 11px; font-weight: 700; }
+@media (max-width: 720px) { .app-header, main, .app-footer { padding-left: 20px; padding-right: 20px; } .app-header { padding-top: 20px; } .app-header > .fui-Toolbar { align-items: flex-start; gap: 16px; flex-direction: column; } .health-grid { grid-template-columns: 1fr; } .status-strip { align-items: flex-start; flex-wrap: wrap; } .status-strip span { margin-left: 0; width: 100%; } .preview-switcher { right: 8px; bottom: 8px; max-width: calc(100vw - 16px); flex-wrap: wrap; } }
+@media (prefers-reduced-motion: reduce) { .status-card { transition: none; } .status-card:hover { transform: none; } }
