@@ -27,7 +27,8 @@ export class QuizApplicationService {
 		const state = await this.workflow.state(sessionId);
 		const previous = state.answers.find((item) => item.questionId === answer.questionId);
 
-		if (previous && sameAnswerSelection(previous, answer)) return this.workflow.toPublic(state);
+		if (previous && sameAnswerSelection(previous, answer))
+			return this.workflow.toPublic(state);
 
 		let projection = await this.store.get(sessionId);
 
@@ -45,7 +46,8 @@ export class QuizApplicationService {
 
 		await this.store.submitAnswer(sessionId, answer, projection.version);
 
-		if (next.status === 'completed' && next.score) await this.store.saveScore(sessionId, next.score);
+		if (next.status === 'completed' && next.score)
+			await this.store.saveScore(sessionId, next.score);
 
 		return this.workflow.toPublic(next);
 	}

@@ -51,7 +51,8 @@ describe('LangGraphQuizWorkflow', () => {
 		for (let index = 0; index < questions.length; index += 1) {
 			state = await workflow.resume(state.sessionId, { questionId: questions[index].id, selectedOptionIds: ['a'] });
 
-			if (index < questions.length - 1) expect(workflow.toPublic(state).currentQuestionIndex).toBe(index + 1);
+			if (index < questions.length - 1)
+				expect(workflow.toPublic(state).currentQuestionIndex).toBe(index + 1);
 		}
 
 		expect(state.status).toBe('completed');

@@ -14,7 +14,8 @@ const MAX_REDIRECTS = 5;
 function isPrivateAddress(address: string): boolean {
 	const normalized = address.toLowerCase();
 
-	if (normalized === '::1' || normalized === 'localhost' || normalized.endsWith('.localhost')) return true;
+	if (normalized === '::1' || normalized === 'localhost' || normalized.endsWith('.localhost'))
+		return true;
 
 	if (normalized.includes(':'))
 		return (
@@ -64,7 +65,8 @@ export class MarkdownSourceService {
 					continue;
 				}
 
-				if (!response.ok) throw new BadRequestException(`Markdown source returned HTTP ${response.status}`);
+				if (!response.ok)
+					throw new BadRequestException(`Markdown source returned HTTP ${response.status}`);
 
 				const contentType = response.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase();
 
@@ -78,7 +80,8 @@ export class MarkdownSourceService {
 
 				const body = await response.arrayBuffer();
 
-				if (body.byteLength > maxBytes) throw new BadRequestException('Markdown source is too large');
+				if (body.byteLength > maxBytes)
+					throw new BadRequestException('Markdown source is too large');
 
 				return { requestedUrl, finalUrl: parsed, content: Buffer.from(body).toString('utf8') };
 			} catch (error) {
@@ -102,12 +105,14 @@ export class MarkdownSourceService {
 			throw new BadRequestException('sourceUrl must be a valid HTTPS URL');
 		}
 
-		if (url.protocol !== 'https:') throw new BadRequestException('sourceUrl must use HTTPS');
+		if (url.protocol !== 'https:')
+			throw new BadRequestException('sourceUrl must use HTTPS');
 
 		if (url.hostname === 'github.com') {
 			const match = url.pathname.match(/^\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/);
 
-			if (match) return `https://raw.githubusercontent.com/${match[1]}/${match[2]}/${match[3]}/${match[4]}`;
+			if (match)
+				return `https://raw.githubusercontent.com/${match[1]}/${match[2]}/${match[3]}/${match[4]}`;
 		}
 
 		return url.toString();
@@ -116,7 +121,8 @@ export class MarkdownSourceService {
 	private async validateUrl(value: string): Promise<string> {
 		const url = new URL(value);
 
-		if (url.protocol !== 'https:') throw new BadRequestException('Markdown source redirects must use HTTPS');
+		if (url.protocol !== 'https:')
+			throw new BadRequestException('Markdown source redirects must use HTTPS');
 
 		if (!this.config.getOrThrow('MARKDOWN_ALLOWED_HOSTS').includes(url.hostname.toLowerCase()))
 			throw new BadRequestException('Markdown source host is not allowed');

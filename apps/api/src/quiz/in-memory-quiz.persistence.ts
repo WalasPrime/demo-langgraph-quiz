@@ -36,15 +36,19 @@ export class InMemoryQuizSessionStore implements QuizSessionStore {
 	async submitAnswer(sessionId: string, answer: QuizAnswer, version: number): Promise<QuizSession> {
 		const session = this.sessions.get(sessionId);
 
-		if (!session) throw new NotFoundException('Quiz session not found');
+		if (!session)
+			throw new NotFoundException('Quiz session not found');
 
 		const previous = session.answers.find((item) => item.questionId === answer.questionId);
 
-		if (previous && sameAnswerSelection(previous, answer)) return session;
+		if (previous && sameAnswerSelection(previous, answer))
+			return session;
 
-		if (session.version !== version) throw new ConflictException('Quiz session version is stale');
+		if (session.version !== version)
+			throw new ConflictException('Quiz session version is stale');
 
-		if (previous) throw new ConflictException('Question has already been answered');
+		if (previous)
+			throw new ConflictException('Question has already been answered');
 
 		const updated: QuizSession = { ...session, answers: [...session.answers, answer], version: session.version + 1 };
 
@@ -56,7 +60,8 @@ export class InMemoryQuizSessionStore implements QuizSessionStore {
 	async saveScore(sessionId: string, score: QuizScore): Promise<QuizSession> {
 		const session = this.sessions.get(sessionId);
 
-		if (!session) throw new NotFoundException('Quiz session not found');
+		if (!session)
+			throw new NotFoundException('Quiz session not found');
 
 		const updated = {
 			...session,

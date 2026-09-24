@@ -15,6 +15,9 @@ export default tseslint.config(
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+			indent: ['error', 'tab', { SwitchCase: 1 }],
+			'nonblock-statement-body-position': ['error', 'beside', { overrides: { if: 'below' } }],
+			'no-trailing-spaces': 'error',
 			'padding-line-between-statements': [
 				'error',
 				{ blankLine: 'always', prev: '*', next: ['const', 'let', 'var'] },

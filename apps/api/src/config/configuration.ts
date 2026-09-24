@@ -43,7 +43,8 @@ function parseMongoUri(value: unknown): string {
 function parseString(value: unknown, fallback: string): string {
 	const parsed = String(value ?? fallback).trim();
 
-	if (!parsed) throw new Error('Configuration values must not be empty');
+	if (!parsed)
+		throw new Error('Configuration values must not be empty');
 
 	return parsed;
 }

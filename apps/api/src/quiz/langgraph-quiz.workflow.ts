@@ -102,7 +102,8 @@ export class LangGraphQuizWorkflow {
 		try {
 			const current = await this.state(sessionId);
 
-			if (current.status !== 'pending') return current;
+			if (current.status !== 'pending')
+				return current;
 
 			const graph = await this.graph();
 
@@ -132,7 +133,8 @@ export class LangGraphQuizWorkflow {
 		const graph = await this.graph();
 		const current = await this.state(sessionId);
 
-		if (current.status !== 'awaiting_answer') throw new BadRequestException('Quiz is not waiting for an answer');
+		if (current.status !== 'awaiting_answer')
+			throw new BadRequestException('Quiz is not waiting for an answer');
 
 		await graph.invoke(new Command({ resume: answer }), this.config(sessionId));
 
@@ -142,7 +144,8 @@ export class LangGraphQuizWorkflow {
 	async state(sessionId: string): Promise<GraphState> {
 		const snapshot = await (await this.graph()).getState(this.config(sessionId));
 
-		if (!snapshot?.values?.sessionId) throw new NotFoundException('Quiz session not found');
+		if (!snapshot?.values?.sessionId)
+			throw new NotFoundException('Quiz session not found');
 
 		return snapshot.values as GraphState;
 	}
@@ -317,10 +320,10 @@ export class LangGraphQuizWorkflow {
 
 			return result.injectionDetected
 				? {
-						status: 'error',
-						updatedAt: new Date().toISOString(),
-						error: { code: 'PROMPT_INJECTION_DETECTED' },
-					}
+					status: 'error',
+					updatedAt: new Date().toISOString(),
+					error: { code: 'PROMPT_INJECTION_DETECTED' },
+				}
 				: { updatedAt: new Date().toISOString() };
 		} catch (error) {
 			return {
@@ -352,7 +355,8 @@ export class LangGraphQuizWorkflow {
 	}
 
 	private publicQuestion(question: QuizQuestion | undefined): unknown {
-		if (!question) throw new BadRequestException('No question is available');
+		if (!question)
+			throw new BadRequestException('No question is available');
 
 		return {
 			id: question.id,

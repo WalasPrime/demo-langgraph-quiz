@@ -60,23 +60,28 @@ export class MongoQuizSessionStore implements QuizSessionStore {
 		const collection = await this.collection();
 		const current = await collection.findOne({ _id: sessionId });
 
-		if (!current) throw new NotFoundException('Quiz session not found');
+		if (!current)
+			throw new NotFoundException('Quiz session not found');
 
 		const previous = current.answers.find((item) => item.questionId === answer.questionId);
 		const selectedOptionIds = [...answer.selectedOptionIds].sort();
 
-		if (previous && sameAnswerSelection(previous, answer)) return this.fromDocument(current);
+		if (previous && sameAnswerSelection(previous, answer))
+			return this.fromDocument(current);
 
-		if (current.version !== version) throw new ConflictException('Quiz session version is stale');
+		if (current.version !== version)
+			throw new ConflictException('Quiz session version is stale');
 
-		if (previous) throw new ConflictException('Question has already been answered');
+		if (previous)
+			throw new ConflictException('Question has already been answered');
 
 		const update = await collection.updateOne(
 			{ _id: sessionId, version, 'answers.questionId': { $ne: answer.questionId } },
 			{ $push: { answers: { questionId: answer.questionId, selectedOptionIds } }, $inc: { version: 1 } },
 		);
 
-		if (update.modifiedCount !== 1) throw new ConflictException('Quiz session changed during answer submission');
+		if (update.modifiedCount !== 1)
+			throw new ConflictException('Quiz session changed during answer submission');
 
 		return this.fromDocument((await collection.findOne({ _id: sessionId }))!);
 	}
@@ -89,7 +94,8 @@ export class MongoQuizSessionStore implements QuizSessionStore {
 			{ returnDocument: 'after' },
 		);
 
-		if (!result) throw new NotFoundException('Quiz session not found');
+		if (!result)
+			throw new NotFoundException('Quiz session not found');
 
 		return this.fromDocument(result);
 	}
