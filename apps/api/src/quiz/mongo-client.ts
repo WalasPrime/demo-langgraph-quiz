@@ -5,24 +5,26 @@ import { AppConfig } from '../config/configuration';
 
 @Injectable()
 export class MongoClientProvider implements OnModuleDestroy {
-  private readonly client: MongoClient;
-  private connectionPromise?: Promise<MongoClient>;
+	private readonly client: MongoClient;
+	private connectionPromise?: Promise<MongoClient>;
 
-  constructor(private readonly config: ConfigService<AppConfig, true>) {
-    this.client = new MongoClient(this.config.getOrThrow('MONGODB_URI'));
-  }
+	constructor(private readonly config: ConfigService<AppConfig, true>) {
+		this.client = new MongoClient(this.config.getOrThrow('MONGODB_URI'));
+	}
 
-  async get(): Promise<MongoClient> {
-    this.connectionPromise ??= this.connect();
-    return this.connectionPromise;
-  }
+	async get(): Promise<MongoClient> {
+		this.connectionPromise ??= this.connect();
 
-  async onModuleDestroy(): Promise<void> {
-    await this.client.close();
-  }
+		return this.connectionPromise;
+	}
 
-  private async connect(): Promise<MongoClient> {
-    await this.client.connect();
-    return this.client;
-  }
+	async onModuleDestroy(): Promise<void> {
+		await this.client.close();
+	}
+
+	private async connect(): Promise<MongoClient> {
+		await this.client.connect();
+
+		return this.client;
+	}
 }
